@@ -17,47 +17,73 @@ import java.util.Map;
 /**
  * 积分申报流程demo
  * 包含功能:多实例会签、子流程并行审批、动态设置下一节点执行人员、任务超时自动完成
+ *
  * @author guolf
  */
-public class App {
-    public static void main(String[] args) throws InterruptedException {
+public class App
+{
+    public static void main(String[] args) throws InterruptedException
+    {
+
+
         ProcessEngineConfiguration cfg = new StandaloneProcessEngineConfiguration()
                 .setJdbcUrl("jdbc:h2:mem:activiti;DB_CLOSE_DELAY=1000").setJdbcUsername("sa").setJdbcPassword("")
                 .setJdbcDriver("org.h2.Driver")
                 .setJobExecutorActivate(true)
                 .setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_TRUE);
+
+
         ProcessEngine processEngine = cfg.buildProcessEngine();
+
         String pName = processEngine.getName();
         String ver = ProcessEngine.VERSION;
         System.out.println("ProcessEngine [" + pName + "] Version: [" + ver + "]");
 
+
         RepositoryService repositoryService = processEngine.getRepositoryService();
+
+
         // 流程部署
         Deployment deployment = repositoryService.createDeployment().addClasspathResource("MultiTask.bpmn")
                 .name("流程测试")
                 .category("")
                 .deploy();
+
+
         ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
                 .deploymentId(deployment.getId()).singleResult();
+
+
         System.out.println("流程名称 ： [" + processDefinition.getName() + "]， 流程ID ： ["
                 + processDefinition.getId() + "], 流程KEY : " + processDefinition.getKey());
 
+
         IdentityService identityService = processEngine.getIdentityService();
+
+
         // 启动流程
         RuntimeService runtimeService = processEngine.getRuntimeService();
+
+
         // 分配任务的人员
         List<String> assigneeList = new ArrayList<String>();
         assigneeList.add("tom");
         assigneeList.add("jeck");
         assigneeList.add("mary");
+
+
         Map<String, Object> vars = new HashMap<String, Object>();
         vars.put("assigneeList", assigneeList);
+
         identityService.setAuthenticatedUserId("createUserId");
+
         ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("myProcess", "Key001", vars);
 
         System.out.println("流程实例ID = " + processInstance.getId());
         System.out.println("正在活动的流程节点ID = " + processInstance.getActivityId());
         System.out.println("流程定义ID = " + processInstance.getProcessDefinitionId());
+
+
 
         // 查询指定人的任务
         // ============ 会签任务开始 ===========
@@ -72,13 +98,20 @@ public class App {
         taskService.setVariablesLocal(task1.getId(), mapConfirm);
         taskService.complete(task1.getId());
 
+
+
+
         List<Task> taskList2 = taskService.createTaskQuery().taskAssignee("jeck").orderByTaskCreateTime().desc().list();
         System.out.println("taskList2 = " + taskList2);
         Map mapConfirm1 = new HashMap();
         mapConfirm1.put("confirmSts", 1);
+
         Task task2 = taskList2.get(0);
         taskService.setVariablesLocal(task2.getId(), mapConfirm1);
         taskService.complete(task2.getId());
+
+
+
 
         List<Task> taskList3 = taskService.createTaskQuery().taskAssignee("tom").orderByTaskCreateTime().desc().list();
         System.out.println("taskList3 = " + taskList3);
@@ -88,10 +121,13 @@ public class App {
         taskService.complete(task3.getId());
         // ============ 会签任务结束 ===========
 
+
+
         // 部门主任
         List<Task> taskListDept1 = taskService.createTaskQuery().taskAssignee("dept").orderByTaskCreateTime().desc().list();
         System.out.println("taskListDept1 = " + taskListDept1);
         taskService.complete(taskListDept1.get(0).getId());
+
 
         // =============子流程任务开始==========
 
@@ -161,7 +197,10 @@ public class App {
                 .orderByHistoricActivityInstanceEndTime()
                 .asc()
                 .list();
-        for (HistoricActivityInstance historicActivityInstance : historicActivityInstances) {
+
+
+        for (HistoricActivityInstance historicActivityInstance : historicActivityInstances)
+        {
             System.out.println("任务ID:" + historicActivityInstance.getId());
             System.out.println("流程实例ID:" + historicActivityInstance.getProcessInstanceId());
             System.out.println("活动名称：" + historicActivityInstance.getActivityName());
@@ -171,7 +210,9 @@ public class App {
             System.out.println("===========================");
         }
 
-        for (HistoricTaskInstance historicTaskInstance : processEngine.getHistoryService().createHistoricTaskInstanceQuery().taskDefinitionKey("usertask1").list()) {
+
+        for (HistoricTaskInstance historicTaskInstance : processEngine.getHistoryService().createHistoricTaskInstanceQuery().taskDefinitionKey("usertask1").list())
+        {
             System.out.println("historicTaskInstance = " + historicTaskInstance);
         }
 

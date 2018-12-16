@@ -1,56 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/jxtii">
   <process id="docReceive" name="收文流程" isExecutable="true">
+
+
+
+
     <startEvent id="startevent1" name="Start" activiti:initiator="apply"></startEvent>
-    <userTask id="usertask1" name="办公室负责人审核" activiti:assignee="${officeLeader}"></userTask>
+
     <sequenceFlow id="flow1" sourceRef="startevent1" targetRef="usertask1"></sequenceFlow>
-    <exclusiveGateway id="exclusivegateway1" name="Exclusive Gateway"></exclusiveGateway>
+
+    <userTask id="usertask1" name="办公室负责人审核" activiti:assignee="${officeLeader}"></userTask>
+
     <sequenceFlow id="flow2" sourceRef="usertask1" targetRef="exclusivegateway1"></sequenceFlow>
-    <userTask id="usertask6" name="登记人修改" activiti:assignee="${apply}"></userTask>
+
+    <exclusiveGateway id="exclusivegateway1" name="Exclusive Gateway"></exclusiveGateway>
+
+
+
     <sequenceFlow id="flow8" name="驳回" sourceRef="exclusivegateway1" targetRef="usertask6">
       <conditionExpression xsi:type="tFormalExpression"><![CDATA[${pass eq 'no'}]]></conditionExpression>
     </sequenceFlow>
+
+    <userTask id="usertask6" name="登记人修改" activiti:assignee="${apply}"></userTask>
+
     <sequenceFlow id="flow10" sourceRef="usertask6" targetRef="usertask1"></sequenceFlow>
-    <userTask id="usertask8" name="办公室工作人员分发" activiti:assignee="${apply}"></userTask>
-    <userTask id="usertask10" name="办公室归档" activiti:assignee="${apply}"></userTask>
-    <userTask id="usertask11" name="分管领导审批（并行）" activiti:assignee="${leader}">
-      <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="${leaderList}" activiti:elementVariable="leader">
-        <completionCondition>${nrOfCompletedInstances/nrOfInstances ==1 }</completionCondition>
-      </multiInstanceLoopCharacteristics>
-    </userTask>
+
+
+    <sequenceFlow id="flow16" sourceRef="exclusivegateway1" targetRef="usertask12">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${pass eq 'yes' && type eq 'serial'}]]></conditionExpression>
+    </sequenceFlow>
+
     <userTask id="usertask12" name="分管领导审批（串行）" activiti:assignee="${leader}">
       <multiInstanceLoopCharacteristics isSequential="true" activiti:collection="${leaderList}" activiti:elementVariable="leader">
         <completionCondition>${nrOfCompletedInstances/nrOfInstances ==1 }</completionCondition>
       </multiInstanceLoopCharacteristics>
     </userTask>
-    <sequenceFlow id="flow16" sourceRef="exclusivegateway1" targetRef="usertask12">
-      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${pass eq 'yes' && type eq 'serial'}]]></conditionExpression>
-    </sequenceFlow>
+
+
+    <sequenceFlow id="flow27" sourceRef="usertask12" targetRef="usertask8"></sequenceFlow>
+
+
     <sequenceFlow id="flow18" sourceRef="exclusivegateway1" targetRef="usertask11">
       <conditionExpression xsi:type="tFormalExpression"><![CDATA[${pass eq 'yes' && type eq 'parallel'}]]></conditionExpression>
     </sequenceFlow>
-    <endEvent id="endevent1" name="End"></endEvent>
-    <sequenceFlow id="flow20" sourceRef="usertask10" targetRef="endevent1"></sequenceFlow>
+
+
+    <userTask id="usertask11" name="分管领导审批（并行）" activiti:assignee="${leader}">
+      <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="${leaderList}" activiti:elementVariable="leader">
+        <completionCondition>${nrOfCompletedInstances/nrOfInstances ==1 }</completionCondition>
+      </multiInstanceLoopCharacteristics>
+    </userTask>
+
+
     <sequenceFlow id="flow26" sourceRef="usertask11" targetRef="usertask8"></sequenceFlow>
-    <sequenceFlow id="flow27" sourceRef="usertask12" targetRef="usertask8"></sequenceFlow>
+
+
+    <userTask id="usertask8" name="办公室工作人员分发" activiti:assignee="${apply}"></userTask>
+
+    <sequenceFlow id="flow28" sourceRef="usertask8" targetRef="subprocess1"></sequenceFlow>
+
     <subProcess id="subprocess1" name="承办子流程">
+
       <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="${deptList}" activiti:elementVariable="dept">
         <completionCondition>${nrOfCompletedInstances/nrOfInstances ==1 }</completionCondition>
       </multiInstanceLoopCharacteristics>
+
       <startEvent id="startevent2" name="Start"></startEvent>
-      <userTask id="usertask13" name="承办处室受理" activiti:assignee="${dept}"></userTask>
+
       <sequenceFlow id="flow30" sourceRef="startevent2" targetRef="usertask13"></sequenceFlow>
-      <endEvent id="endevent2" name="End"></endEvent>
+
+      <userTask id="usertask13" name="承办处室受理" activiti:assignee="${dept}"></userTask>
+
+      <sequenceFlow id="flow31" sourceRef="usertask13" targetRef="usertask14"></sequenceFlow>
+
       <userTask id="usertask14" name="承办人承办" activiti:assignee="${user}">
         <multiInstanceLoopCharacteristics isSequential="false" activiti:collection="${userList}" activiti:elementVariable="user">
           <completionCondition>${nrOfCompletedInstances/nrOfInstances ==1 }</completionCondition>
         </multiInstanceLoopCharacteristics>
       </userTask>
-      <sequenceFlow id="flow31" sourceRef="usertask13" targetRef="usertask14"></sequenceFlow>
+
       <sequenceFlow id="flow32" sourceRef="usertask14" targetRef="endevent2"></sequenceFlow>
+
+      <endEvent id="endevent2" name="End"></endEvent>
     </subProcess>
-    <sequenceFlow id="flow28" sourceRef="usertask8" targetRef="subprocess1"></sequenceFlow>
+
     <sequenceFlow id="flow29" sourceRef="subprocess1" targetRef="usertask10"></sequenceFlow>
+
+    <userTask id="usertask10" name="办公室归档" activiti:assignee="${apply}"></userTask>
+
+    <endEvent id="endevent1" name="End"></endEvent>
+
+
+    <sequenceFlow id="flow20" sourceRef="usertask10" targetRef="endevent1"></sequenceFlow>
+
   </process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_docReceive">
     <bpmndi:BPMNPlane bpmnElement="docReceive" id="BPMNPlane_docReceive">

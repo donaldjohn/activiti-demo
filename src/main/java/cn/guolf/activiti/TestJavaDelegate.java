@@ -18,10 +18,14 @@ public class TestJavaDelegate implements JavaDelegate {
                 .getHistoryService()
                 .createHistoricVariableInstanceQuery()
                 .list();
+
+
         int pass = 0; // 通过数量
         int refuse = 0; // 驳回数量
         int total = 0; // 总数
         int complete = 0;//完成数
+
+
         for (HistoricVariableInstance historicVariableInstance : list) {
             if (historicVariableInstance.getVariableName().equals("confirmSts")) {
                 if (historicVariableInstance.getValue().toString().equals("0")) {
